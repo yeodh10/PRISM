@@ -8,6 +8,32 @@
 - **아웃바운드 네트워크 필요**: `/ask`는 Anthropic API를, `/news`는 데일리시큐 RSS·기사(og:image)를 런타임에 fetch한다. 차단/실패 시 뉴스는 빈 리스트로 안전 폴백(법령 답변엔 영향 없음). SSRF 방어로 사설/메타데이터 IP는 차단된다.
 - (선택) `CORS_ALLOW_ORIGINS`(운영 도메인 제한), `CLAUDE_MODEL`, `NEWS_*` 등은 `.env`/대시보드 환경변수로 오버라이드.
 
+## 🤗 Hugging Face Spaces — 추천(무료 · 16GB RAM)
+ML 데모 특화 호스팅. torch+임베딩 메모리 문제 없이 **무료로 라이브**. [`Dockerfile`](Dockerfile)을 그대로 빌드한다.
+
+1. [huggingface.co](https://huggingface.co) 로그인(무료 가입) → **New Space**
+2. **SDK: Docker** · **Hardware: CPU basic(무료·16GB)** · 이름 `PRISM` · 공개
+3. Space의 `README.md` 맨 위 메타데이터에 **포트를 명시**(없으면 7860으로 찾다 실패):
+   ```yaml
+   ---
+   title: PRISM
+   emoji: 🌈
+   sdk: docker
+   app_port: 8000
+   ---
+   ```
+4. 코드를 Space(=git repo)에 올린다. Space를 클론해 PRISM 파일을 넣고 push(위 메타데이터 README는 유지):
+   ```bash
+   git clone https://huggingface.co/spaces/<HF아이디>/PRISM hf-prism
+   # PRISM 소스(Dockerfile·app/·data/·frontend/·scripts/·requirements.txt …)를 hf-prism/ 로 복사
+   #   단, .git/ ·venv/ ·.env ·chroma_db/ 는 제외하고, README.md는 3번 메타데이터를 유지
+   cd hf-prism && git add . && git commit -m "deploy PRISM" && git push
+   ```
+5. Space **Settings → Variables and secrets → New secret**: `ANTHROPIC_API_KEY`(시크릿, 절대 커밋 금지)
+6. 자동 빌드(수 분, 임베딩 모델 다운로드 포함) → `https://<HF아이디>-prism.hf.space` 에서 라이브
+
+> 빌드가 길다(torch+모델 다운로드). 로그에서 막히면 그 부분을 붙여 주세요 — 같이 잡습니다. 계정·시크릿 입력만 본인 몫입니다.
+
 ## Render (Blueprint)
 1. repo를 GitHub에 push (`.env` 제외).
 2. Render → **New → Blueprint** → repo 선택 → [`render.yaml`](render.yaml) 자동 인식.
