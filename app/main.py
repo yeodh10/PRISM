@@ -60,6 +60,7 @@ class AskRequest(BaseModel):
 
 
 class Source(BaseModel):
+    law: str = "개인정보보호법"
     id: str
     title: str
     category: str
