@@ -101,6 +101,15 @@
     .chip{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--body);background:var(--surface);border:1px solid var(--border);padding:6px 12px;border-radius:999px;box-shadow:var(--shadow-sm)}
     .chip svg{width:13px;height:13px;color:var(--violet)}
 
+    /* 사용법 3단계 */
+    .howto{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+    .howto-step{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow-sm);transition:border-color .15s,box-shadow .2s,transform .1s}
+    .howto-step:hover{border-color:transparent;box-shadow:var(--glow);transform:translateY(-2px)}
+    .howto .num{width:26px;height:26px;flex:none;border-radius:8px;background:var(--spectrum);color:#fff;font-weight:800;font-size:.85rem;display:grid;place-items:center;box-shadow:0 6px 14px -6px rgba(124,70,239,.6)}
+    .howto .hs-t{font-size:.88rem;font-weight:700;color:var(--ink)}
+    .howto .hs-d{font-size:.76rem;color:var(--muted);line-height:1.55;margin-top:3px}
+    .howto .hs-d b{color:var(--body);font-weight:700}
+
     .notice{display:flex;gap:9px;background:linear-gradient(120deg,rgba(99,102,241,.09),rgba(217,70,239,.07));border:1px solid var(--primary-100);
       color:var(--body);border-radius:13px;padding:12px 15px;font-size:.8rem;line-height:1.55;margin:22px 0}
     .notice b{font-weight:700;color:var(--ink)}
@@ -309,6 +318,13 @@
               <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>현행 제20897호</span>
               <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>조문 31개</span>
             </div>
+          </div>
+
+          <div class="section-title">이렇게 쓰세요</div>
+          <div class="howto">
+            <div class="howto-step"><div class="num">1</div><div><div class="hs-t">질문하기</div><div class="hs-d">상황·키워드·조문 번호를 <b>자연어</b>로 입력하세요. 아래 <b>빠른 질문</b>을 눌러 바로 시작해도 됩니다.</div></div></div>
+            <div class="howto-step"><div class="num">2</div><div><div class="hs-t">출처와 함께 답변</div><div class="hs-d">검색된 조문에만 근거해 <b>[출처: 제○조]</b>를 붙여 답합니다. 모르면 솔직히 “찾지 못함”.</div></div></div>
+            <div class="howto-step"><div class="num">3</div><div><div class="hs-t">원문 확인</div><div class="hs-d">참고 조문 카드에서 분류·유사도를 보고 <b>‘원문 ↗’</b>으로 법령 원문까지 확인하세요.</div></div></div>
           </div>
 
           <div class="notice">
