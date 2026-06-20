@@ -16,8 +16,9 @@ class Settings(BaseSettings):
     # 답변 생성용. Anthropic 권장 기본값. 비용 민감 데모면 .env의 CLAUDE_MODEL로
     # claude-sonnet-4-6 / claude-haiku-4-5 로 교체 가능.
     claude_model: str = "claude-opus-4-8"
-    # adaptive thinking 깊이. 잘못된 값은 기동 시 ValidationError로 즉시 잡힘.
-    claude_effort: Literal["low", "medium", "high"] = "medium"
+    # adaptive thinking 깊이(output_config.effort). opus-4-8 유효 티어 전부 허용.
+    # (Claude Code 세션의 CLAUDE_EFFORT=max 등 환경변수도 그대로 수용) 오타는 기동 시 ValidationError로 즉시 잡힘.
+    claude_effort: Literal["low", "medium", "high", "xhigh", "max"] = "medium"
 
     # --- 임베딩 ---
     embedding_model: str = "jhgan/ko-sroberta-multitask"  # 한국어 SBERT (768d)
