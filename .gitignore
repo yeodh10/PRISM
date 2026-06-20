@@ -22,9 +22,10 @@ chroma_db/
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE / 로컬 에이전트 도구
 .vscode/
 .idea/
+.claude/
 
 # Logs
 *.log
