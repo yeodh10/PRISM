@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#4338ca" />
+  <title>PRISM — 개인정보보호법 AI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <style>
+    :root {
+      --primary: #4338ca; --primary-600: #4f46e5; --primary-700: #3730a3;
+      --primary-50: #eef2ff; --primary-100: #e0e7ff;
+      --ink: #0f172a; --body: #334155; --muted: #64748b; --muted-2: #94a3b8;
+      --bg: #f7f8fb; --surface: #ffffff; --border: #e7e9ee;
+      --radius: 10px; --radius-card: 14px;
+      --shadow: 0 1px 2px rgba(15,23,42,.04), 0 12px 28px -14px rgba(15,23,42,.12);
+      --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+      --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+        system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--font); color: var(--body); font-size: 16px; line-height: 1.65; background: var(--bg); }
+    a { color: inherit; }
+    .app { display: flex; min-height: 100vh; }
+
+    /* ===== Sidebar ===== */
+    .sidebar {
+      width: 256px; flex: none; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 16px; padding: 18px 14px;
+      position: sticky; top: 0; height: 100vh;
+    }
+    .brand { display: flex; align-items: center; gap: 9px; padding: 4px 6px 2px; }
+    .brand .mark { width: 26px; height: 26px; }
+    .brand .name { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); }
+    .brand .name b { color: var(--primary); }
+    .brand .tag { font-size: 0.66rem; font-weight: 700; color: var(--primary); background: var(--primary-50); padding: 2px 6px; border-radius: 6px; margin-left: 2px; }
+    .new-btn {
+      display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%;
+      background: var(--primary); color: #fff; border: none; border-radius: var(--radius);
+      padding: 11px; font-size: 0.92rem; font-weight: 700; font-family: var(--font); cursor: pointer;
+      transition: background .15s;
+    }
+    .new-btn:hover { background: var(--primary-700); }
+    .new-btn svg { width: 16px; height: 16px; }
+    .side-label { font-size: 0.7rem; font-weight: 700; color: var(--muted-2); letter-spacing: 0.04em; padding: 0 8px 4px; text-transform: uppercase; }
+    .nav { display: flex; flex-direction: column; gap: 2px; }
+    .nav a { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 9px; color: var(--muted); font-size: 0.9rem; font-weight: 500; text-decoration: none; cursor: pointer; transition: background .12s, color .12s; }
+    .nav a:hover { background: var(--bg); color: var(--ink); }
+    .nav a.active { background: var(--primary-50); color: var(--primary-700); font-weight: 600; }
+    .nav a svg { width: 18px; height: 18px; flex: none; }
+    .recents { display: flex; flex-direction: column; gap: 1px; overflow-y: auto; flex: 1; min-height: 24px; }
+    .recents .empty { color: var(--muted-2); font-size: 0.8rem; padding: 4px 8px; }
+    .recents button {
+      text-align: left; background: none; border: none; color: var(--muted); font-family: var(--font);
+      font-size: 0.83rem; padding: 7px 9px; border-radius: 8px; cursor: pointer; width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .recents button:hover { background: var(--bg); color: var(--ink); }
+    .side-foot { font-size: 0.7rem; color: var(--muted-2); line-height: 1.5; padding: 10px 8px 2px; border-top: 1px solid var(--border); }
+
+    /* ===== Main ===== */
+    .main { flex: 1; min-width: 0; }
+    .main-inner { max-width: 840px; margin: 0 auto; padding: 40px 36px 80px; }
+    .welcome h1 { font-size: 1.55rem; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; margin: 0 0 7px; }
+    .welcome p { color: var(--muted); margin: 0; font-size: 0.95rem; }
+    .welcome .props { margin-top: 10px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+    .welcome .props span { display: inline-flex; align-items: center; gap: 5px; }
+    .welcome .props svg { width: 14px; height: 14px; color: var(--primary); }
+
+    .notice {
+      display: flex; gap: 9px; background: var(--primary-50); border: 1px solid var(--primary-100);
+      color: var(--primary-700); border-radius: 12px; padding: 11px 15px; font-size: 0.8rem; line-height: 1.55; margin: 20px 0;
+    }
+    .notice b { font-weight: 700; }
+
+    .ask-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); padding: 14px; }
+    .ask-row { display: flex; gap: 10px; }
+    .input-wrap { position: relative; flex: 1; }
+    .input-wrap svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 19px; height: 19px; color: var(--muted-2); }
+    .ask-row input {
+      width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px 14px 44px; font-size: 1.02rem; font-family: var(--font); color: var(--ink); outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .ask-row input::placeholder { color: var(--muted-2); }
+    .ask-row input:focus { border-color: var(--primary-600); box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
+    .ask-row button {
+      background: var(--primary); color: #fff; border: none; border-radius: var(--radius);
+      padding: 0 24px; font-weight: 700; font-size: 1rem; font-family: var(--font); cursor: pointer;
+      white-space: nowrap; transition: background .15s, transform .05s;
+    }
+    .ask-row button:hover { background: var(--primary-700); }
+    .ask-row button:active { transform: translateY(1px); }
+    .ask-row button:disabled { opacity: 0.55; cursor: default; }
+
+    .section-title { font-size: 0.95rem; font-weight: 700; color: var(--ink); margin: 30px 0 13px; }
+    .topics { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .topic {
+      display: flex; gap: 14px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-card); padding: 17px; cursor: pointer; box-shadow: var(--shadow-sm);
+      transition: border-color .15s, box-shadow .15s, transform .06s; text-align: left;
+    }
+    .topic:hover { border-color: var(--primary-600); box-shadow: var(--shadow); transform: translateY(-1px); }
+    .topic .tile { width: 40px; height: 40px; flex: none; border-radius: 11px; background: var(--primary); display: grid; place-items: center; }
+    .topic .tile svg { width: 21px; height: 21px; color: #fff; }
+    .topic .t { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+    .topic .d { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .topic .go { font-size: 0.78rem; font-weight: 600; color: var(--primary); margin-top: 9px; }
+
+    /* ===== Result ===== */
+    #result { margin-top: 22px; }
+    .answer { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow); padding: 26px 28px; white-space: pre-wrap; word-break: break-word; color: #20283a; }
+    .answer .cite { color: var(--primary-700); font-weight: 600; background: var(--primary-50); padding: 1px 6px; border-radius: 6px; font-size: 0.92em; white-space: nowrap; }
+    .answer .loading { color: var(--muted); }
+    .sources { margin-top: 14px; }
+    .sources summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; font-weight: 600; padding: 6px 2px; list-style: none; user-select: none; }
+    .sources summary::-webkit-details-marker { display: none; }
+    .sources summary::before { content: "▸ "; color: var(--primary-600); }
+    .sources[open] summary::before { content: "▾ "; }
+    .src { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 11px 15px; margin: 9px 0; font-size: 0.9rem; box-shadow: var(--shadow-sm); }
+    .src-linked { border-style: dashed; background: #fcfcfd; }
+    .src .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .src .id { font-weight: 700; color: var(--ink); }
+    .badge { font-size: 0.66rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-right: 6px; vertical-align: 1px; }
+    .badge.hit { background: var(--primary); color: #fff; }
+    .badge.linked { background: var(--primary-100); color: var(--primary-700); }
+    .src .meta { color: var(--muted); font-size: 0.78rem; }
+    .src .right { color: var(--muted-2); font-size: 0.76rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .src a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .src a:hover { text-decoration: underline; }
+    .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 14px 18px; border-radius: 12px; font-size: 0.92rem; }
+
+    /* ===== About ===== */
+    .about { margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+    .about h2 { font-size: 1rem; color: var(--ink); margin: 0 0 8px; }
+    .about code { background: var(--surface); border: 1px solid var(--border); padding: 1px 6px; border-radius: 5px; font-size: 0.82em; }
+    .news-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .news-item { display: flex; gap: 15px; align-items: stretch; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; text-decoration: none; box-shadow: var(--shadow-sm); transition: border-color .15s, box-shadow .15s, transform .06s; }
+    .news-item:hover { border-color: var(--primary-600); box-shadow: var(--shadow); transform: translateY(-1px); }
+    .news-thumb { width: 104px; height: 78px; flex: none; object-fit: cover; border-radius: 8px; background: var(--bg); }
+    .news-body { min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+    .news-item .nt { font-size: 0.96rem; font-weight: 600; color: var(--ink); line-height: 1.5; }
+    .news-item .nm { margin-top: 6px; font-size: 0.78rem; color: var(--muted-2); }
+    .news-loading, .news-error { color: var(--muted); font-size: 0.9rem; padding: 24px 2px; }
+
+    @media (max-width: 760px) {
+      .sidebar { display: none; }
+      .main-inner { padding: 28px 18px 60px; }
+      .topics { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#6366f1"/><stop offset=".55" stop-color="#4338ca"/><stop offset="1" stop-color="#7c3aed"/>
+          </linearGradient></defs>
+          <path d="M16 3 28 25H4L16 3Z" stroke="url(#pg)" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M16 3v22" stroke="#a5b4fc" stroke-width="1.4"/>
+          <path d="M2 14h7" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M23 14l7-3" stroke="#7c3aed" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M23 17l7 1.5" stroke="#4338ca" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <span class="name">PRIS<b>M</b></span><span class="tag">AI</span>
+      </div>
+
+      <button class="new-btn" id="newBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        새 질문
+      </button>
+
+      <div>
+        <div class="side-label">메뉴</div>
+        <nav class="nav">
+          <a class="active" data-view="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>홈</a>
+          <a data-view="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h13a2 2 0 0 0 2-2V4a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v16a2 2 0 0 1-2 2 2 2 0 0 1-2-2V9a1 1 0 0 1 1-1h2"/><path d="M8 7h7M8 11h7M8 15h4"/></svg>뉴스</a>
+          <a data-view="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>소개</a>
+        </nav>
+      </div>
+
+      <div style="display:flex;flex-direction:column;min-height:0;flex:1;">
+        <div class="side-label">최근 질문</div>
+        <div class="recents" id="recents"><div class="empty">아직 없습니다</div></div>
+      </div>
+
+      <div class="side-foot">
+        ⚠️ 비공식 참고용 · 법률 자문 아님<br />출처: 국가법령정보센터 law.go.kr
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="main-inner">
+        <div id="view-home">
+        <div class="welcome" id="top">
+          <h1>개인정보보호법, 무엇이든 물어보세요</h1>
+          <p>검색된 조문에 근거해 출처와 함께 답합니다. 모르면 솔직하게 “찾지 못함”.</p>
+          <div class="props">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>출처 강제</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>환각 억제</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/></svg>현행 법률 제20897호</span>
+          </div>
+        </div>
+
+        <div class="notice">
+          <span>⚠️</span>
+          <span>본 서비스는 <b>비공식 참고용</b>이며 법률 자문이 아닙니다. 정확한 내용은 법령 원문과 전문가 확인이 필요합니다. (현행: 법률 제20897호, 시행 2025-10-02)</span>
+        </div>
+
+        <div class="ask-card">
+          <div class="ask-row">
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input id="q" type="text" maxlength="1000" autocomplete="off" aria-label="개인정보 보호법 질문 입력" placeholder="예) 개인정보가 유출되면 언제 통지해야 하나요?" />
+            </div>
+            <button id="send">질문</button>
+          </div>
+        </div>
+
+        <div id="result" role="status" aria-live="polite"></div>
+
+        <div class="section-title" id="topics">빠른 질문</div>
+        <div class="topics" id="topicGrid">
+          <button class="topic" data-q="개인정보가 유출되면 언제 통지해야 하나요?">
+            <div class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div><div class="t">유출 시 통지·신고</div><div class="d">언제, 무엇을, 누구에게 알려야 하나</div><div class="go">물어보기 →</div></div>
+          </button>
+          <button class="topic" data-q="동의 없이 개인정보를 수집할 수 있는 경우는?">
+            <div class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <div><div class="t">수집·이용 요건</div><div class="d">동의 없이 수집 가능한 경우는?</div><div class="go">물어보기 →</div></div>
+          </button>
+          <button class="topic" data-q="개인정보보호법 위반 시 과징금은 얼마까지 부과되나요?">
+            <div class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l14 0M7 7l-3 7h6zM17 7l-3 7h6z"/></svg></div>
+            <div><div class="t">과징금</div><div class="d">위반 시 상한과 부과 기준</div><div class="go">물어보기 →</div></div>
+          </button>
+          <button class="topic" data-q="정보주체는 어떤 권리를 행사할 수 있나요?">
+            <div class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></div>
+            <div><div class="t">정보주체 권리</div><div class="d">열람·정정·삭제·처리정지</div><div class="go">물어보기 →</div></div>
+          </button>
+        </div>
+
+        </div><!-- /view-home -->
+
+        <div id="view-about" hidden>
+          <div class="welcome"><h1>PRISM 소개</h1><p>개인정보 보호법 조문을 검색해 출처와 함께 답하는 RAG 챗봇</p></div>
+          <div class="about" id="about" style="border:none;margin-top:16px;padding-top:0;">
+            <p><b>P</b>rivacy <b>R</b>egulation <b>I</b>ntelligent <b>S</b>earch <b>M</b>odel — 개인정보 보호법 조문을 한국어 임베딩으로 검색하고, 검색된 조문에만 근거해 출처를 인용하며 답하는 RAG 챗봇입니다. 조문 간 상호참조를 그래프로 묶어 연관 조문도 함께 제공합니다(Hybrid).</p>
+            <p style="margin-top:8px;">스택: <code>FastAPI</code> · <code>한국어 SBERT</code> · <code>Chroma</code> · <code>Claude</code> &nbsp;|&nbsp; 출처: 국가법령정보센터 law.go.kr</p>
+          </div>
+        </div>
+
+        <div id="view-news" hidden>
+          <div class="welcome"><h1>개인정보 뉴스</h1><p>개인정보보호 관련 최신 뉴스입니다. 외부 언론 기사이며, PRISM의 법령 답변과는 무관한 참고 정보입니다.</p></div>
+          <div id="newsList" class="news-list"><div class="news-loading">불러오는 중…</div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const qEl = $("#q"), sendEl = $("#send"), resultEl = $("#result"), recentsEl = $("#recents");
+
+    const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : "";
+    const renderAnswer = (t) => esc(t).replace(/\n/g, "<br>").replace(/\[출처:[^\]]+\]/g, (m) => `<span class="cite">${m}</span>`);
+
+    // ── 최근 질문 (localStorage) ──
+    let recents = [];
+    try { recents = JSON.parse(localStorage.getItem("prism_recents") || "[]"); } catch (e) {}
+    function renderRecents() {
+      if (!recents.length) { recentsEl.innerHTML = '<div class="empty">아직 없습니다</div>'; return; }
+      recentsEl.innerHTML = recents.map((r) => `<button title="${esc(r)}">${esc(r)}</button>`).join("");
+    }
+    function pushRecent(q) {
+      recents = [q, ...recents.filter((r) => r !== q)].slice(0, 10);
+      try { localStorage.setItem("prism_recents", JSON.stringify(recents)); } catch (e) {}
+      renderRecents();
+    }
+    renderRecents();
+    recentsEl.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) ask(b.textContent); });
+
+    async function ask(question) {
+      question = (question || "").trim();
+      if (!question) return;
+      showView("home"); activateNav((n) => n.dataset.view === "home");
+      qEl.value = question;
+      sendEl.disabled = true; sendEl.innerHTML = '<span class="spinner"></span>';
+      resultEl.innerHTML = '<div class="answer"><span class="loading">관련 조문을 검색하고 답변을 생성하는 중…</span></div>';
+      resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      try {
+        const res = await fetch("/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
+        const data = await res.json();
+        if (!res.ok) { resultEl.innerHTML = `<div class="error">⚠️ ${esc(data.detail || "오류가 발생했습니다.")}</div>`; return; }
+        pushRecent(question);
+        let html = `<div class="answer">${renderAnswer(data.answer)}</div>`;
+        if (data.sources && data.sources.length) {
+          const nLinked = data.sources.filter((s) => s.kind === "연관").length;
+          const nHit = data.sources.length - nLinked;
+          html += `<details class="sources" open><summary>${nLinked ? `참고 조문 ${nHit}개 + 연관 ${nLinked}개` : `참고 조문 ${nHit}개`}</summary>`;
+          for (const s of data.sources) {
+            const linked = s.kind === "연관";
+            const url = safeUrl(s.source_url);
+            const link = url ? `<a href="${esc(url)}" target="_blank" rel="noopener">원문 ↗</a>` : "";
+            const badge = linked ? `<span class="badge linked">연관</span>` : `<span class="badge hit">검색</span>`;
+            const right = linked ? `<span class="right">← ${esc((s.linked_from || []).join(", "))} 인용</span>` : `<span class="right">유사도 ${Number(s.score).toFixed(3)}</span>`;
+            html += `<div class="src${linked ? " src-linked" : ""}"><div class="top"><span class="id">${badge}${esc(s.id)} ${esc(s.title)}</span>${right}</div><div class="meta">${esc(s.category)} · ${esc(s.ref)} ${link}</div></div>`;
+          }
+          html += `</details>`;
+        }
+        resultEl.innerHTML = html;
+      } catch (e) {
+        resultEl.innerHTML = `<div class="error">⚠️ 네트워크 오류: ${esc(String(e))}</div>`;
+      } finally { sendEl.disabled = false; sendEl.textContent = "질문"; }
+    }
+
+    sendEl.addEventListener("click", () => ask(qEl.value));
+    qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(qEl.value); });
+    $("#topicGrid").addEventListener("click", (e) => { const t = e.target.closest(".topic"); if (t) ask(t.dataset.q); });
+    $("#newBtn").addEventListener("click", () => { showView("home"); activateNav((n) => n.dataset.view === "home"); resultEl.innerHTML = ""; qEl.value = ""; qEl.focus(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    let newsLoaded = false;
+    function showView(name) {
+      ["home", "news", "about"].forEach((v) => {
+        document.getElementById("view-" + v).hidden = v !== name;
+      });
+    }
+    function activateNav(pred) {
+      document.querySelectorAll(".nav a").forEach((n) => {
+        const on = pred(n);
+        n.classList.toggle("active", on);
+        n.setAttribute("aria-current", on ? "page" : "false");
+      });
+    }
+    async function loadNews() {
+      if (newsLoaded) return;
+      const el = document.getElementById("newsList");
+      try {
+        const data = await (await fetch("/news")).json();
+        const items = data.items || [];
+        if (!items.length) { el.innerHTML = '<div class="news-error">뉴스를 불러오지 못했습니다.</div>'; return; }
+        el.innerHTML = items.map((n) => {
+          const url = safeUrl(n.link);
+          const img = safeUrl(n.image);
+          let date = "";
+          const _d = new Date(n.pubDate || "");
+          if (n.pubDate && !isNaN(_d.getTime())) date = _d.toLocaleDateString("ko-KR");
+          const thumb = img ? `<img class="news-thumb" src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : "";
+          const meta = [esc(n.source || ""), n.author ? esc(n.author) : "", date ? esc(date) : ""].filter(Boolean).join(" · ");
+          const inner = `${thumb}<div class="news-body"><div class="nt">${esc(n.title)}</div><div class="nm">${meta}</div></div>`;
+          return url ? `<a class="news-item" href="${esc(url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="news-item">${inner}</div>`;
+        }).join("");
+        newsLoaded = true;
+      } catch (e) { el.innerHTML = '<div class="news-error">뉴스를 불러오지 못했습니다.</div>'; }
+    }
+    document.querySelector(".nav").addEventListener("click", (e) => {
+      const a = e.target.closest("a"); if (!a) return;
+      activateNav((n) => n === a);
+      const view = a.dataset.view || "home";
+      showView(view);
+      if (view === "news") loadNews();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    // 접근성: 메뉴 항목을 키보드로 포커스·실행 가능하게
+    document.querySelectorAll(".nav a").forEach((a) => {
+      a.setAttribute("role", "link");
+      a.setAttribute("tabindex", "0");
+      a.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); a.click(); }
+      });
+    });
+  </script>
+</body>
+</html>

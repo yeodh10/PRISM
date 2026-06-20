@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Secrets / env (NEVER commit real keys)
+.env
+*.local.env
+!.env.example
+
+# Vector store (rebuildable from data/)
+chroma_db/
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# 내부 작업 메모 (공개 레포에서 제외 — 타깃/전략 메모 포함)
+빌드지시서_*.md
+*_내부.md
+NOTES.local.md

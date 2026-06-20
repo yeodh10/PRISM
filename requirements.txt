@@ -1,0 +1,18 @@
+# === PRISM 의존성 ===
+# 웹/백엔드
+fastapi
+uvicorn[standard]
+pydantic-settings
+python-dotenv
+httpx                          # app/news.py RSS·og:image fetch + TestClient
+
+# LLM
+anthropic
+
+# RAG: 임베딩 + 벡터스토어
+sentence-transformers          # 한국어 SBERT(ko-sroberta-multitask) 로컬·무료 임베딩
+scipy<1.15                     # ★ Smart App Control이 scipy>=1.15의 _cyutility DLL을 차단 → 1.14.x로 고정
+chromadb
+
+# 테스트
+pytest
