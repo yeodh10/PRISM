@@ -56,7 +56,9 @@
     /* ===== Sidebar ===== */
     .sidebar{width:264px;flex:none;background:var(--glass);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
       border-right:1px solid var(--border);display:flex;flex-direction:column;gap:18px;padding:20px 14px;position:sticky;top:0;height:100vh}
-    .brand{display:flex;align-items:center;gap:10px;padding:4px 6px 0}
+    .brand{display:flex;align-items:center;gap:10px;padding:4px 6px 0;cursor:pointer;border-radius:8px;transition:opacity .15s}
+    .brand:hover{opacity:.78}
+    .brand:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
     .brand .mark{width:30px;height:30px;animation:glow 4.5s ease-in-out infinite}
     @keyframes glow{0%,100%{filter:drop-shadow(0 3px 9px rgba(124,92,255,.45))}50%{filter:drop-shadow(0 4px 16px rgba(217,70,239,.6))}}
     .brand .name{font-size:1.4rem;font-weight:800;letter-spacing:-.04em;color:var(--ink)}
@@ -259,7 +261,7 @@
   <div class="app">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="brand">
+      <div class="brand" id="brandHome" role="button" tabindex="0" aria-label="홈으로 이동" title="홈">
         <svg class="mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#6366f1"/><stop offset=".5" stop-color="#a855f7"/><stop offset="1" stop-color="#06b6d4"/>
@@ -472,6 +474,12 @@
     qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(qEl.value); });
     $("#topicGrid").addEventListener("click", (e) => { const t = e.target.closest(".topic"); if (t) ask(t.dataset.q); });
     $("#newBtn").addEventListener("click", () => { showView("home"); activateNav((n) => n.dataset.view === "home"); resultEl.innerHTML = ""; qEl.value = ""; qEl.focus(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+
+    // 좌측 상단 PRISM 로고 → 홈(메인)으로 이동
+    const goHome = () => { showView("home"); activateNav((n) => n.dataset.view === "home"); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    const brandHome = document.getElementById("brandHome");
+    brandHome.addEventListener("click", goHome);
+    brandHome.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goHome(); } });
 
     let newsLoaded = false;
     function showView(name) {
