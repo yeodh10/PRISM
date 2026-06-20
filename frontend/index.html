@@ -183,6 +183,46 @@
     .news-item .nm{margin-top:7px;font-size:.78rem;color:var(--muted-2)}
     .news-loading,.news-error{color:var(--muted);font-size:.9rem;padding:24px 2px}
 
+    /* ===== ① 히어로 그라디언트 메시 ===== */
+    .hero{position:relative;z-index:0}
+    .mesh{position:absolute;z-index:-1;left:-30px;right:-30px;top:-54px;height:260px;pointer-events:none;filter:blur(52px);opacity:.5}
+    [data-theme="dark"] .mesh{opacity:.62}
+    .mesh span{position:absolute;width:260px;height:260px;border-radius:50%}
+    .mesh span:nth-child(1){left:0;top:0;background:radial-gradient(circle,#6366f1,transparent 68%);animation:m1 16s ease-in-out infinite}
+    .mesh span:nth-child(2){left:40%;top:-26px;background:radial-gradient(circle,#d946ef,transparent 68%);animation:m2 19s ease-in-out infinite}
+    .mesh span:nth-child(3){right:0;top:12px;background:radial-gradient(circle,#06b6d4,transparent 68%);animation:m3 22s ease-in-out infinite}
+    @keyframes m1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(42px,20px) scale(1.16)}}
+    @keyframes m2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-32px,26px) scale(1.1)}}
+    @keyframes m3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-26px,-18px) scale(1.13)}}
+
+    /* ===== ② 답변 글래스모피즘 + 인용 호버 툴팁 ===== */
+    .answer{background:var(--glass);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%)}
+    .cite{position:relative}
+    .cite[data-tip]{cursor:help}
+    .cite[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%) translateY(4px);width:max-content;max-width:240px;white-space:normal;text-align:center;background:var(--ink);color:var(--surface);font-size:.74rem;font-weight:600;line-height:1.35;padding:7px 11px;border-radius:9px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .16s,transform .16s;z-index:30}
+    .cite[data-tip]:hover::after{opacity:1;transform:translateX(-50%)}
+    .cite[data-tip]::before{content:"";position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink);opacity:0;transition:opacity .16s;z-index:30}
+    .cite[data-tip]:hover::before{opacity:1}
+
+    /* ===== ④ 조문 카테고리 컬러 코딩 ===== */
+    .src{position:relative;overflow:hidden}
+    .src::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,transparent)}
+    .cat-pill{display:inline-block;font-size:.72rem;font-weight:700;padding:1px 9px;border-radius:999px;color:var(--c,var(--muted));background:color-mix(in srgb,var(--c,#888) 15%,transparent)}
+
+    /* ===== ③ 인트로 — 프리즘 분광 애니메이션 ===== */
+    #intro{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--bg)}
+    #intro.hide{opacity:0;pointer-events:none;transition:opacity .55s ease}
+    .intro-svg{width:min(440px,82vw)}
+    .intro-svg .prism{stroke:#94a3b8;stroke-width:2.4;stroke-linejoin:round;opacity:0;animation:prismIn .5s .1s forwards}
+    [data-theme="dark"] .intro-svg .prism{stroke:#cbd5e1}
+    @keyframes prismIn{to{opacity:.9}}
+    .intro-svg .beam{stroke-dasharray:200;stroke-dashoffset:200;animation:drawline .42s .15s forwards ease-out}
+    .intro-svg .ray{stroke-dasharray:260;stroke-dashoffset:260;opacity:.92;animation:drawline .6s forwards ease-out}
+    .ray.r1{animation-delay:.5s}.ray.r2{animation-delay:.58s}.ray.r3{animation-delay:.66s}.ray.r4{animation-delay:.74s}.ray.r5{animation-delay:.82s}.ray.r6{animation-delay:.9s}
+    @keyframes drawline{to{stroke-dashoffset:0}}
+    .intro-name{font-size:2rem;font-weight:800;letter-spacing:.14em;background:var(--spectrum);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;animation:nameIn .6s 1.05s forwards}
+    @keyframes nameIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
     @media (max-width:760px){
       .sidebar{display:none}
       .main-inner{padding:30px 18px 64px}
@@ -192,6 +232,21 @@
   </style>
 </head>
 <body>
+  <div id="intro" aria-hidden="true">
+    <svg class="intro-svg" viewBox="0 0 400 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line class="beam" x1="14" y1="118" x2="182" y2="124" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <path class="prism" d="M196 62 L234 138 L158 138 Z"/>
+      <g fill="none" stroke-width="3" stroke-linecap="round">
+        <line class="ray r1" x1="208" y1="127" x2="392" y2="84" stroke="#ef4444"/>
+        <line class="ray r2" x1="208" y1="128" x2="392" y2="102" stroke="#f59e0b"/>
+        <line class="ray r3" x1="208" y1="128" x2="392" y2="119" stroke="#eab308"/>
+        <line class="ray r4" x1="208" y1="129" x2="392" y2="136" stroke="#22c55e"/>
+        <line class="ray r5" x1="208" y1="130" x2="392" y2="153" stroke="#3b82f6"/>
+        <line class="ray r6" x1="208" y1="131" x2="392" y2="171" stroke="#8b5cf6"/>
+      </g>
+    </svg>
+    <div class="intro-name">PRISM</div>
+  </div>
   <div class="app">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -245,6 +300,7 @@
       <div class="main-inner">
         <div id="view-home" class="view">
           <div class="hero" id="top">
+            <div class="mesh" aria-hidden="true"><span></span><span></span><span></span></div>
             <h1>개인정보보호법,<br />무엇이든 <span class="grad">물어보세요</span></h1>
             <p>검색된 조문에 근거해 출처와 함께 답합니다. 모르면 솔직하게 “찾지 못함”.</p>
             <div class="props">
@@ -322,7 +378,15 @@
 
     const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
     const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : "";
-    const renderAnswer = (t) => esc(t).replace(/\n/g, "<br>").replace(/\[출처:[^\]]+\]/g, (m) => `<span class="cite">${m}</span>`);
+    // 조문 카테고리 → 일관된 색(해시 기반, 큐레이션 팔레트)
+    const CAT_COLORS = ["#6366f1","#7c3aed","#d946ef","#06b6d4","#3b82f6","#14b8a6","#f43f5e","#f59e0b","#10b981","#0ea5e9"];
+    const catColor = (c) => { let h = 0; for (let i = 0; i < (c || "").length; i++) h = (h * 31 + c.charCodeAt(i)) >>> 0; return CAT_COLORS[h % CAT_COLORS.length]; };
+    const renderAnswer = (t, srcMap) => esc(t).replace(/\n/g, "<br>").replace(/\[출처:[^\]]+\]/g, (m) => {
+      const id = (m.match(/제\d+조(?:의\d+)?/) || [])[0];
+      const s = id && srcMap ? srcMap[id] : null;
+      const tip = s ? esc(`${s.title} · ${s.category}`) : "";
+      return `<span class="cite"${tip ? ` data-tip="${tip}"` : ""}>${m}</span>`;
+    });
 
     // ── 테마 ──
     const saved = localStorage.getItem("prism_theme");
@@ -364,7 +428,9 @@
         const data = await res.json();
         if (!res.ok) { resultEl.innerHTML = `<div class="error">⚠️ ${esc(data.detail || "오류가 발생했습니다.")}</div>`; return; }
         pushRecent(question);
-        let html = `<div class="answer">${renderAnswer(data.answer)}</div>`;
+        const srcMap = {};
+        (data.sources || []).forEach((s) => { if (!srcMap[s.id]) srcMap[s.id] = s; });
+        let html = `<div class="answer">${renderAnswer(data.answer, srcMap)}</div>`;
         if (data.sources && data.sources.length) {
           const nLinked = data.sources.filter((s) => s.kind === "연관").length;
           const nHit = data.sources.length - nLinked;
@@ -375,7 +441,8 @@
             const link = url ? `<a href="${esc(url)}" target="_blank" rel="noopener">원문 ↗</a>` : "";
             const badge = linked ? `<span class="badge linked">연관</span>` : `<span class="badge hit">검색</span>`;
             const right = linked ? `<span class="right">← ${esc((s.linked_from || []).join(", "))} 인용</span>` : `<span class="right">유사도 ${Number(s.score).toFixed(3)}</span>`;
-            html += `<div class="src${linked ? " src-linked" : ""}"><div class="top"><span class="id">${badge}${esc(s.id)} ${esc(s.title)}</span>${right}</div><div class="meta">${esc(s.category)} · ${esc(s.ref)} ${link}</div></div>`;
+            const c = catColor(s.category);
+            html += `<div class="src${linked ? " src-linked" : ""}" style="--c:${c}"><div class="top"><span class="id">${badge}${esc(s.id)} ${esc(s.title)}</span>${right}</div><div class="meta"><span class="cat-pill" style="--c:${c}">${esc(s.category)}</span> · ${esc(s.ref)} ${link}</div></div>`;
           }
           html += `</details>`;
         }
@@ -436,6 +503,19 @@
       a.setAttribute("tabindex", "0");
       a.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); a.click(); } });
     });
+
+    // ── 인트로(프리즘 분광) — 세션당 1회, 클릭/약 2초 후 사라짐, 모션 최소화 존중 ──
+    (function intro() {
+      const el = document.getElementById("intro");
+      if (!el) return;
+      const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let seen = false; try { seen = sessionStorage.getItem("prism_intro"); } catch (e) {}
+      if (reduce || seen) { el.remove(); return; }
+      try { sessionStorage.setItem("prism_intro", "1"); } catch (e) {}
+      const done = () => { el.classList.add("hide"); setTimeout(() => el.remove(), 600); };
+      el.addEventListener("click", done);
+      setTimeout(done, 2050);
+    })();
   </script>
 </body>
 </html>
