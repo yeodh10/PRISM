@@ -116,6 +116,26 @@ uvicorn app.main:app --reload
 
 ---
 
+## 검색 정확도 (평가)
+
+LLM을 빼고 **검색 단계만** 측정한다(질문 임베딩 → 벡터 top-k). 정답은 "가장 관련 깊은 단일 조문"으로 큐레이션한 26개 질의 기준:
+
+| 지표 | 값 |
+|---|---|
+| recall@1 | **0.885** (23/26) |
+| recall@4 | **0.923** (24/26) |
+| MRR | **0.904** |
+
+```bash
+python -m scripts.eval_retrieval   # eval/eval_set.json 기준
+```
+
+> 점수를 100%로 맞추지 않았다 — 미스 2건은 실제 한계다. "동의 없이 수집"은 제15조 대신 인접 조문을, "불법 유출 벌칙"은 제71조(벌칙) 대신 제59조(금지행위·유출 금지)를 상위로 반환. **정직한 측정**이 목적.
+
+> 📐 설계 선택의 근거·트레이드오프와 면접 예상 문답: **[DESIGN.md](DESIGN.md)**
+
+---
+
 ## 기술적 난제와 해결
 
 ### 1. 환각 억제 = 출처 강제
@@ -169,8 +189,11 @@ PRISM/
 │       └── generator.py   # Claude 답변(출처·고지 코드 강제)
 ├── scripts/
 │   ├── validate_data.py   # 로드·누락 리포트
-│   └── build_index.py     # 임베딩 → Chroma
+│   ├── build_index.py     # 임베딩 → Chroma
+│   └── eval_retrieval.py  # 검색 정확도 recall@k 평가
 ├── tests/                 # pytest (안전 불변식·API 검증, LLM 비호출)
+├── eval/eval_set.json     # 검색 평가 질의셋(26)
+├── DESIGN.md              # 설계 결정 기록(ADR) + 면접 문답
 ├── data/pipa.json         # 조문 37개 (law.go.kr 원문)
 ├── frontend/index.html    # 앱셸 UI (홈·뉴스·소개)
 └── requirements.txt
