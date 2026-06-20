@@ -1,0 +1,30 @@
+# 빌드 컨텍스트에서 제외(이미지 가볍게 + 시크릿/로컬 산출물 차단)
+.git/
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# 시크릿/로컬 — 절대 이미지에 넣지 않음
+.env
+*.local.env
+
+# 런타임에 새로 빌드되는 인덱스(로컬본 복사 금지)
+chroma_db/
+*.sqlite3
+
+# 내부 메모/포트폴리오 산출물(런타임 불필요)
+빌드지시서_*.md
+*_내부.md
+NOTES.local.md
+PRISM_portfolio.pdf
+.claude/
+.github/
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

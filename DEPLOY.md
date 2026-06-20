@@ -19,6 +19,16 @@
 2. [`Procfile`](Procfile)의 start 커맨드 사용. Variables에 `ANTHROPIC_API_KEY` 추가.
 3. 빌드 후 1회 `python -m scripts.build_index` 실행(또는 build 훅에 추가).
 
+## Docker (Fly.io / Railway / 컨테이너 호스트)
+[`Dockerfile`](Dockerfile)이 의존성·인덱스·임베딩 모델을 이미지에 베이크하므로 런타임 다운로드가 없다.
+```bash
+docker build -t prism .
+docker run -p 8000:8000 -e ANTHROPIC_API_KEY=sk-ant-... prism
+#   → http://localhost:8000
+```
+- Fly.io: `fly launch`(기존 Dockerfile 인식) → `fly secrets set ANTHROPIC_API_KEY=...` → `fly deploy`.
+- 시크릿은 항상 플랫폼 시크릿/환경변수로만 주입(이미지·repo에 절대 미포함, `.dockerignore`가 `.env` 차단).
+
 ## ⚠️ 무료 티어 메모리 주의 (정직한 한계)
 런타임에 **torch + 한국어 SBERT 모델(~400MB)** 을 메모리에 올리므로, 512MB 무료 티어에서는 **OOM 가능성**이 있다. 선택지:
 
