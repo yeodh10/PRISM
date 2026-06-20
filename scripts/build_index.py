@@ -14,17 +14,21 @@ from app.rag.vectorstore import get_collection
 
 
 def main() -> int:
-    articles = load_articles(settings.data_path)
-    print(f"조문 {len(articles)}개 로드 — 임베딩 모델: {settings.embedding_model}")
+    from collections import Counter
+
+    articles = load_articles()  # data/*.json 전체(멀티 법령)
+    laws = Counter(a.law for a in articles)
+    print(f"조문 {len(articles)}개 로드 {dict(laws)} — 임베딩 모델: {settings.embedding_model}")
 
     col = get_collection(reset=True)
     embeddings = embed_texts([a.embedding_text for a in articles])
     col.add(
-        ids=[a.id for a in articles],
+        ids=[a.uid for a in articles],  # 법령:조문 (법령 간 ID 충돌 방지)
         documents=[a.text for a in articles],
         embeddings=embeddings,
         metadatas=[
             {
+                "law": a.law,
                 "id": a.id,
                 "title": a.title,
                 "category": a.category,

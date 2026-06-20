@@ -31,7 +31,8 @@ class Settings(BaseSettings):
     top_k: int = 4
 
     # --- 데이터 ---
-    data_path: str = "./data/pipa.json"
+    data_path: str = "./data/pipa.json"     # (하위호환) 단일 파일 경로
+    data_dir: str = "./data"                # 여기의 모든 *.json(법령별)을 로드 — 멀티 법령
 
     # --- 뉴스 탭 (정보성 외부 뉴스, 법령 답변과 분리) ---
     news_rss_url: str = "https://www.dailysecu.com/rss/allArticle.xml"

@@ -19,7 +19,9 @@ def test_internal_ref_after_external_or_preserved():
 
 def test_reference_graph_excludes_external_includes_internal():
     g = reference_graph()
-    # 제22조 본문은 「전자문서 및 전자거래 기본법」 제2조를 인용 → 내부 제2조로 잡히면 안 됨
-    assert "제2조" not in g.get("제22조", [])
-    # 내부 참조는 포함
-    assert "제15조" in g.get("제22조", [])
+    # 멀티 법령: 키·값이 uid(법령:조문). 개인정보보호법 제22조 기준.
+    refs = g.get("개인정보보호법:제22조", [])
+    # 제22조 본문의 「전자문서 및 전자거래 기본법」 제2조 인용 → 내부 제2조로 잡히면 안 됨
+    assert "개인정보보호법:제2조" not in refs
+    # 같은 법령 내부 참조는 포함
+    assert "개인정보보호법:제15조" in refs
