@@ -60,6 +60,8 @@ def build_user_prompt(question: str, articles: list[RetrievedArticle]) -> str:
 
 _CITE_BLOCK = re.compile(r"\[출처:[^\]]*\]")
 _ART_ID = re.compile(r"제\d+조(?:의\d+)?")
+# 법령명(…법) + 조문 — 인용 블록 내 '법령 명시 인용'을 (법령, 조문) 단위로 잡는다.
+_LAW_ART = re.compile(r"([가-힣A-Za-z]+법)\s*(제\d+조(?:의\d+)?)")
 
 
 def _cited_ids(answer: str) -> set[str]:
@@ -70,13 +72,22 @@ def _cited_ids(answer: str) -> set[str]:
     return ids
 
 
-def _cited_refs(answer: str, laws: set[str]) -> set[str]:
-    """[출처: ...] 블록에서 (법령 약칭 + 조문) 추출. 법령명이 블록에 있으면 'law 제N조', 없으면 '제N조'."""
+def _cited_refs(answer: str) -> set[str]:
+    """[출처: ...] 블록에서 인용을 추출 — '○○법 제N조'면 'law 제N조', 법령명 없으면 bare '제N조'.
+
+    핵심: 법령명을 '검색결과에 있는 법령'으로 제한하지 않는다(과거 버그). 검색결과에 없는
+    법령(예: 같은 번호의 다른 법)을 인용해도 법령명을 보존해야, _finalize의 valid_full
+    검증이 'cross-law 혼동'(예: 결과엔 개인정보보호법 제15조뿐인데 신용정보법 제15조 인용)을 잡는다.
+    """
     out: set[str] = set()
     for block in _CITE_BLOCK.findall(answer):
-        law = next((L for L in laws if L in block), "")
-        for i in _ART_ID.findall(block):
-            out.add(f"{law} {i}".strip())
+        qualified: set[str] = set()
+        for law, art in _LAW_ART.findall(block):
+            out.add(f"{law} {art}")
+            qualified.add(art)
+        for art in _ART_ID.findall(block):
+            if art not in qualified:  # 법령명이 붙지 않은 조문번호만 bare로
+                out.add(art)
     return out
 
 
@@ -93,10 +104,9 @@ def _finalize(answer: str, articles: list, stop_reason: str | None) -> str:
 
     # 안전망2(절대원칙 ②·⑤): 출처 인용을 코드로 검증·강제(사용자에게 배너 부착)
     if articles:
-        laws = {a.law for a in articles}
         valid_full = {f"{a.law} {a.id}" for a in articles}
         valid_ids = {a.id for a in articles}
-        cited = _cited_refs(answer, laws)
+        cited = _cited_refs(answer)
         unverified = []
         for c in cited:
             if " " in c:  # 법령 명시 인용 → (법령, 조문)이 정확히 일치해야 함

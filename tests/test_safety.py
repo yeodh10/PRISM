@@ -3,9 +3,9 @@ from app.rag.generator import DISCLAIMER, _cited_ids, _finalize
 from app.rag.retriever import RetrievedArticle
 
 
-def _art(article_id: str) -> RetrievedArticle:
+def _art(article_id: str, law: str = "개인정보보호법") -> RetrievedArticle:
     return RetrievedArticle(
-        id=article_id, title="제목", category="c", ref="개인정보 보호법",
+        id=article_id, law=law, title="제목", category="c", ref="개인정보 보호법",
         text="t", source_url="", score=0.5,
     )
 
@@ -54,3 +54,15 @@ def test_nomatch_answer_not_flagged():
 
 def test_cited_ids_extraction():
     assert _cited_ids("a [출처: 제29조(x)] b [출처: 제28조의2(y)]") == {"제29조", "제28조의2"}
+
+
+def test_cross_law_citation_flagged():
+    # 같은 번호 다른 법령 함정: 검색엔 개인정보보호법 제15조뿐인데 답변이 '신용정보법 제15조' 인용 → 경고
+    out = _finalize("내용 [출처: 신용정보법 제15조(수집)]", [_art("제15조", law="개인정보보호법")], "end_turn")
+    assert "신용정보법 제15조" in out and "확인되지 않았" in out
+
+
+def test_correct_law_citation_passes():
+    # 검색결과 법령과 일치하는 법령 명시 인용은 경고 없이 통과
+    out = _finalize("내용 [출처: 신용정보법 제15조(수집)]", [_art("제15조", law="신용정보법")], "end_turn")
+    assert "확인되지 않았" not in out
