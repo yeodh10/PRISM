@@ -3,10 +3,13 @@
 > **P**rivacy **R**egulation **I**ntelligent **S**earch **M**odel
 > 개인정보 보호법 조문을 자연어로 질문하면, 관련 조문을 **검색**해 쉬운 말로 답하고 **출처(조/항/호)를 인용**하는 RAG 챗봇.
 
+[![Live Demo](https://img.shields.io/badge/🤗%20Live%20Demo-pmo88--prism.hf.space-4f46e5)](https://pmo88-prism.hf.space)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
 ![Claude](https://img.shields.io/badge/LLM-Claude%20Opus%204.8-d97757)
 ![License](https://img.shields.io/badge/License-MIT-green)
+
+**▶ 라이브 데모: [pmo88-prism.hf.space](https://pmo88-prism.hf.space)** · 무료 호스팅이라 첫 응답은 콜드스타트로 ~1분 걸릴 수 있습니다.
 
 > ⚠️ **비공식 참고용입니다. 법률 자문이 아니며, 정확한 내용은 법령 원문과 전문가 확인이 필요합니다.**
 > 현행 기준: **개인정보 보호법(법률 제20897호, 시행 2025-10-02)**.
@@ -132,7 +135,7 @@ python -m scripts.eval_retrieval   # eval/eval_set.json 기준
 
 > 점수를 100%로 맞추지 않았다 — 미스 2건은 실제 한계다. "동의 없이 수집"은 제15조 대신 인접 조문을, "불법 유출 벌칙"은 제71조(벌칙) 대신 제59조(금지행위·유출 금지)를 상위로 반환. **정직한 측정**이 목적.
 
-> 📐 설계 선택의 근거·트레이드오프와 면접 예상 문답: **[DESIGN.md](DESIGN.md)**
+> 📐 설계 선택의 근거·트레이드오프(ADR): **[DESIGN.md](DESIGN.md)**
 
 ---
 
@@ -193,7 +196,7 @@ PRISM/
 │   └── eval_retrieval.py  # 검색 정확도 recall@k 평가
 ├── tests/                 # pytest (안전 불변식·API 검증, LLM 비호출)
 ├── eval/eval_set.json     # 검색 평가 질의셋(26)
-├── DESIGN.md              # 설계 결정 기록(ADR) + 면접 문답
+├── DESIGN.md              # 설계 결정 기록(ADR)
 ├── data/pipa.json         # 조문 37개 (law.go.kr 원문)
 ├── frontend/index.html    # 앱셸 UI (홈·뉴스·소개)
 └── requirements.txt
