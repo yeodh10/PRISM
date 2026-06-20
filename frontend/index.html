@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#4f46e5" />
-  <title>PRISM — 개인정보보호법 AI</title>
+  <title>PRISM — 개인정보·데이터 규제 AI</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <style>
@@ -224,6 +224,11 @@
     .src{position:relative;overflow:hidden}
     .src::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,transparent)}
     .cat-pill{display:inline-block;font-size:.72rem;font-weight:700;padding:1px 9px;border-radius:999px;color:var(--c,var(--muted));background:color-mix(in srgb,var(--c,#888) 15%,transparent)}
+    .law-filter{display:flex;flex-wrap:wrap;gap:7px;margin:12px 2px 0}
+    .law-chip{font-size:.76rem;font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:5px 13px;border-radius:999px;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+    .law-chip:hover{color:var(--ink)}
+    .law-chip.active{color:#fff;background:var(--spectrum);border-color:transparent;box-shadow:0 6px 16px -8px rgba(99,70,229,.6)}
+    .law-chip .n{opacity:.62;font-weight:600;margin-left:4px;font-size:.9em}
     .src .src-law{display:inline-block;font-size:.66rem;font-weight:800;color:#fff;background:var(--spectrum);padding:1px 7px;border-radius:999px;margin-right:6px;vertical-align:1px}
 
     /* ===== ③ 인트로 — 프리즘 분광 애니메이션 ===== */
@@ -343,11 +348,12 @@
           <div class="ask-card">
             <div class="ask-row">
               <div class="input-wrap">
-                <input id="q" type="text" maxlength="1000" autocomplete="off" aria-label="개인정보 보호법 질문 입력" placeholder="예) 개인정보가 유출되면 언제 통지해야 하나요?" />
+                <input id="q" type="text" maxlength="1000" autocomplete="off" aria-label="개인정보·데이터 규제 법령 질문 입력" placeholder="예) 개인정보가 유출되면 언제 통지해야 하나요?" />
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </div>
               <button id="send">질문</button>
             </div>
+            <div class="law-filter" id="lawFilter" role="group" aria-label="법령 필터 — 검색 범위를 특정 법령으로 제한"></div>
           </div>
 
           <div id="result" role="status" aria-live="polite"></div>
@@ -374,7 +380,7 @@
         </div><!-- /view-home -->
 
         <div id="view-about" class="view" hidden>
-          <div class="hero"><h1><span class="grad">PRISM</span> 소개</h1><p>개인정보 보호법 조문을 검색해 출처와 함께 답하는 RAG 챗봇</p></div>
+          <div class="hero"><h1><span class="grad">PRISM</span> 소개</h1><p>개인정보·데이터 규제 조문을 검색해 출처와 함께 답하는 RAG 챗봇</p></div>
           <div class="about">
             <p><b>P</b>rivacy <b>R</b>egulation <b>I</b>ntelligent <b>S</b>earch <b>M</b>odel — 개인정보보호법·정보통신망법·신용정보법·AI기본법 등 개인정보·데이터 규제 조문을 한국어 임베딩으로 검색하고, 검색된 조문에만 근거해 출처(법령·조문)를 인용하며 답하는 RAG 챗봇입니다. 조문 간 상호참조를 그래프로 묶어 연관 조문도 함께 제공합니다(Hybrid).</p>
           </div>
@@ -440,6 +446,26 @@
     renderRecents();
     recentsEl.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) ask(b.textContent); });
 
+    // ── 법령 필터 (전체/법령별) — /laws에서 동적 구성, currentLaw를 /ask에 전달 ──
+    const lawFilterEl = $("#lawFilter");
+    let currentLaw = null;
+    async function loadLaws() {
+      if (!lawFilterEl) return;
+      let laws = [];
+      try { laws = (await (await fetch("/laws")).json()).laws || []; } catch (e) {}
+      const chips = [{ law: null, label: "전체" }, ...laws.map((l) => ({ law: l.law, label: l.law, n: l.count }))];
+      lawFilterEl.innerHTML = chips.map((c) =>
+        `<button class="law-chip${c.law === currentLaw ? " active" : ""}" data-law="${esc(c.law || "")}" title="${esc(c.law || "전체 법령")}에서 검색">${esc(c.label)}${c.n != null ? `<span class="n">${c.n}</span>` : ""}</button>`
+      ).join("");
+    }
+    if (lawFilterEl) lawFilterEl.addEventListener("click", (e) => {
+      const b = e.target.closest(".law-chip");
+      if (!b) return;
+      currentLaw = b.dataset.law || null;
+      lawFilterEl.querySelectorAll(".law-chip").forEach((x) => x.classList.toggle("active", x === b));
+    });
+    loadLaws();
+
     async function ask(question) {
       question = (question || "").trim();
       if (!question) return;
@@ -449,7 +475,7 @@
       resultEl.innerHTML = '<div class="answer"><span class="loading">관련 조문을 검색하고 답변을 생성하는 중…</span></div>';
       resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
       try {
-        const res = await fetch("/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question }) });
+        const res = await fetch("/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(currentLaw ? { question, law: currentLaw } : { question }) });
         const data = await res.json();
         if (!res.ok) { resultEl.innerHTML = `<div class="error">⚠️ ${esc(data.detail || "오류가 발생했습니다.")}</div>`; return; }
         pushRecent(question);

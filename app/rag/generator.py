@@ -64,14 +64,6 @@ _ART_ID = re.compile(r"제\d+조(?:의\d+)?")
 _LAW_ART = re.compile(r"([가-힣A-Za-z]+법)\s*(제\d+조(?:의\d+)?)")
 
 
-def _cited_ids(answer: str) -> set[str]:
-    """답변 본문의 [출처: ...] 토큰에서 조문 id(제N조/제N조의M)를 추출."""
-    ids: set[str] = set()
-    for block in _CITE_BLOCK.findall(answer):
-        ids.update(_ART_ID.findall(block))
-    return ids
-
-
 def _cited_refs(answer: str) -> set[str]:
     """[출처: ...] 블록에서 인용을 추출 — '○○법 제N조'면 'law 제N조', 법령명 없으면 bare '제N조'.
 

@@ -1,4 +1,4 @@
-"""PRISM — 개인정보보호법 RAG 챗봇 (FastAPI 진입점)."""
+"""PRISM — 개인정보·데이터 규제 RAG 챗봇 (FastAPI 진입점)."""
 import logging
 import threading
 import time
@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from app.config import settings
 from app.news import get_news
+from app.rag.retriever import available_laws
 from app.service import answer_question
 
 logger = logging.getLogger("prism")
@@ -40,10 +41,10 @@ def _rate_limited(ip: str) -> bool:
         return False
 
 app = FastAPI(
-    title="PRISM — 개인정보보호법 RAG 챗봇",
-    description="개인정보 보호법 조문을 검색해 출처와 함께 답하는 RAG 챗봇. "
-    "⚠️ 비공식 참고용이며 법률 자문이 아닙니다.",
-    version="0.3.0",
+    title="PRISM — 개인정보·데이터 규제 RAG 챗봇",
+    description="개인정보보호법·정보통신망법·신용정보법·AI기본법 등 개인정보·데이터 규제 조문을 "
+    "검색해 출처와 함께 답하는 RAG 챗봇. ⚠️ 비공식 참고용이며 법률 자문이 아닙니다.",
+    version="0.4.0",
 )
 
 # 프론트를 같은 오리진에서 서빙하므로 기본 데모는 전체 허용. 운영은 .env의 CORS_ALLOW_ORIGINS로 제한.
@@ -57,6 +58,7 @@ app.add_middleware(
 
 class AskRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000, description="자연어 질문")
+    law: str | None = Field(default=None, max_length=40, description="검색 범위를 특정 법령으로 제한(미지정=전체)")
 
 
 class Source(BaseModel):
@@ -105,6 +107,12 @@ def health():
     }
 
 
+@app.get("/laws", tags=["system"])
+def laws():
+    """인덱스에 존재하는 법령 목록 + 조문 수 (필터 UI 구성용)."""
+    return {"laws": available_laws()}
+
+
 @app.post("/ask", response_model=AskResponse, tags=["rag"])
 def ask(req: AskRequest, request: Request):
     """질문 → 관련 조문 검색 → Claude가 출처 인용해 답변."""
@@ -114,13 +122,16 @@ def ask(req: AskRequest, request: Request):
     question = req.question.strip()
     if not question:
         raise HTTPException(status_code=422, detail="질문이 비어 있습니다.")
+    law = req.law or None
+    if law and law not in {d["law"] for d in available_laws()}:
+        raise HTTPException(status_code=422, detail=f"알 수 없는 법령입니다: {law}")
     if not settings.anthropic_api_key:
         raise HTTPException(
             status_code=503,
             detail="ANTHROPIC_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.",
         )
     try:
-        return answer_question(question)
+        return answer_question(question, law=law)
     except anthropic.AuthenticationError:
         raise HTTPException(status_code=401, detail="Anthropic API 키가 유효하지 않습니다. .env의 키를 확인하세요.")
     except anthropic.RateLimitError:

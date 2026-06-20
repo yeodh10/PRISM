@@ -48,6 +48,19 @@ class RetrievedArticle:
         }
 
 
+def available_laws() -> list[dict]:
+    """인덱스에 존재하는 법령별 조문 수 (필터 UI 구성·law 파라미터 검증용). 조문 많은 순."""
+    col = get_collection()
+    if col.count() == 0:
+        return []
+    metas = col.get(include=["metadatas"]).get("metadatas", []) or []
+    counts: dict[str, int] = {}
+    for m in metas:
+        law = (m or {}).get("law", "개인정보보호법")
+        counts[law] = counts.get(law, 0) + 1
+    return [{"law": k, "count": v} for k, v in sorted(counts.items(), key=lambda kv: -kv[1])]
+
+
 def retrieve(question: str, k: int | None = None, law: str | None = None) -> list[RetrievedArticle]:
     """질문과 가장 가까운 조문 k개 (벡터 검색). law 지정 시 해당 법령만. 인덱스 비면 빈 리스트."""
     k = k or settings.top_k

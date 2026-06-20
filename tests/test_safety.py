@@ -1,5 +1,5 @@
 """generator 안전망(면책 고지·출처 검증) 단위 테스트 — LLM 비호출."""
-from app.rag.generator import DISCLAIMER, _cited_ids, _finalize
+from app.rag.generator import DISCLAIMER, _finalize
 from app.rag.retriever import RetrievedArticle
 
 
@@ -50,10 +50,6 @@ def test_valid_citation_passes_without_warning():
 def test_nomatch_answer_not_flagged():
     out = _finalize("제공된 조문에서는 찾지 못했습니다.", [_art("제29조")], "end_turn")
     assert "근거 조문 인용이 확인되지 않았" not in out
-
-
-def test_cited_ids_extraction():
-    assert _cited_ids("a [출처: 제29조(x)] b [출처: 제28조의2(y)]") == {"제29조", "제28조의2"}
 
 
 def test_cross_law_citation_flagged():
