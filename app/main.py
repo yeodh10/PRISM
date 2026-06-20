@@ -134,6 +134,12 @@ def ask(req: AskRequest, request: Request):
 
 
 @app.get("/news", tags=["news"])
-def news():
-    """개인정보·보안 관련 외부 뉴스(데일리시큐 RSS). 법령 답변과 무관한 정보 탭."""
-    return {"items": get_news()}
+def news(page: int = 1, size: int = 20):
+    """개인정보·보안 외부 뉴스(다매체 집계·최신순). 법령 답변과 무관한 정보 탭. 20개씩 페이지네이션."""
+    items = get_news()
+    size = max(1, min(size, 50))
+    total = len(items)
+    pages = max(1, (total + size - 1) // size)
+    page = max(1, min(page, pages))
+    start = (page - 1) * size
+    return {"items": items[start:start + size], "page": page, "pages": pages, "total": total, "size": size}

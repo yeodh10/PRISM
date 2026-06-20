@@ -193,6 +193,11 @@
     .news-item .nt{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .news-item .nm{margin-top:7px;font-size:.78rem;color:var(--muted-2)}
     .news-loading,.news-error{color:var(--muted);font-size:.9rem;padding:24px 2px}
+    .pager{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin-top:24px}
+    .pager button{min-width:36px;height:36px;padding:0 11px;border:1px solid var(--border);background:var(--surface);color:var(--muted);border-radius:10px;font-family:var(--font);font-size:.86rem;font-weight:700;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+    .pager button:hover:not(:disabled){border-color:var(--primary);color:var(--ink)}
+    .pager button.active{background:var(--spectrum);color:#fff;border-color:transparent;box-shadow:0 6px 14px -6px rgba(124,70,239,.6)}
+    .pager button:disabled{opacity:.4;cursor:default}
 
     /* ===== ① 히어로 그라디언트 메시 ===== */
     .hero{position:relative;z-index:0}
@@ -384,6 +389,7 @@
         <div id="view-news" class="view" hidden>
           <div class="hero"><h1>개인정보 <span class="grad">뉴스</span></h1><p>개인정보보호 관련 최신 뉴스입니다. 외부 언론 기사이며, PRISM의 법령 답변과는 무관한 참고 정보입니다.</p></div>
           <div id="newsList" class="news-list"><div class="news-loading">불러오는 중…</div></div>
+          <div id="newsPager" class="pager"></div>
         </div>
       </div>
     </main>
@@ -492,33 +498,44 @@
         n.setAttribute("aria-current", on ? "page" : "false");
       });
     }
-    async function loadNews() {
-      if (newsLoaded) return;
-      const el = document.getElementById("newsList");
+    function renderNewsItem(n) {
+      const url = safeUrl(n.link), img = safeUrl(n.image);
+      let date = "";
+      const _d = new Date(n.pubDate || "");
+      if (n.pubDate && !isNaN(_d.getTime())) date = _d.toLocaleDateString("ko-KR");
+      const thumb = img ? `<img class="news-thumb" src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : "";
+      const meta = [esc(n.source || ""), n.author ? esc(n.author) : "", date ? esc(date) : ""].filter(Boolean).join(" · ");
+      const inner = `${thumb}<div class="news-body"><div class="nt">${esc(n.title)}</div><div class="nm">${meta}</div></div>`;
+      return url ? `<a class="news-item" href="${esc(url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="news-item">${inner}</div>`;
+    }
+    async function loadNews(page = 1) {
+      const el = document.getElementById("newsList"), pager = document.getElementById("newsPager");
+      el.innerHTML = '<div class="news-loading">불러오는 중…</div>'; pager.innerHTML = "";
       try {
-        const data = await (await fetch("/news")).json();
+        const data = await (await fetch(`/news?page=${page}&size=20`)).json();
         const items = data.items || [];
         if (!items.length) { el.innerHTML = '<div class="news-error">뉴스를 불러오지 못했습니다.</div>'; return; }
-        el.innerHTML = items.map((n) => {
-          const url = safeUrl(n.link);
-          const img = safeUrl(n.image);
-          let date = "";
-          const _d = new Date(n.pubDate || "");
-          if (n.pubDate && !isNaN(_d.getTime())) date = _d.toLocaleDateString("ko-KR");
-          const thumb = img ? `<img class="news-thumb" src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : "";
-          const meta = [esc(n.source || ""), n.author ? esc(n.author) : "", date ? esc(date) : ""].filter(Boolean).join(" · ");
-          const inner = `${thumb}<div class="news-body"><div class="nt">${esc(n.title)}</div><div class="nm">${meta}</div></div>`;
-          return url ? `<a class="news-item" href="${esc(url)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="news-item">${inner}</div>`;
-        }).join("");
+        el.innerHTML = items.map(renderNewsItem).join("");
+        const pages = Math.min(data.pages || 1, 10), cur = data.page || page;
+        if (pages > 1) {
+          let h = `<button ${cur <= 1 ? "disabled" : ""} data-p="${cur - 1}" aria-label="이전 페이지">‹</button>`;
+          for (let i = 1; i <= pages; i++) h += `<button class="${i === cur ? "active" : ""}" data-p="${i}" aria-label="${i}페이지"${i === cur ? ' aria-current="page"' : ""}>${i}</button>`;
+          h += `<button ${cur >= pages ? "disabled" : ""} data-p="${cur + 1}" aria-label="다음 페이지">›</button>`;
+          pager.innerHTML = h;
+        }
         newsLoaded = true;
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } catch (e) { el.innerHTML = '<div class="news-error">뉴스를 불러오지 못했습니다.</div>'; }
     }
+    document.getElementById("newsPager").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-p]"); if (b) loadNews(+b.dataset.p);
+    });
     document.querySelector(".nav").addEventListener("click", (e) => {
       const a = e.target.closest("a"); if (!a) return;
       activateNav((n) => n === a);
       const view = a.dataset.view || "home";
       showView(view);
-      if (view === "news") loadNews();
+      if (view === "news" && !newsLoaded) loadNews(1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     // 접근성: 메뉴 항목을 키보드로 포커스·실행 가능하게
