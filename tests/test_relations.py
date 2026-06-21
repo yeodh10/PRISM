@@ -41,3 +41,11 @@ def test_graph_edges_point_to_owned_articles_only():
     for src, tgts in g.items():
         for t in tgts:
             assert get_article_by_uid(t) is not None, f"{src} → {t} (미보유 조문)"
+
+
+def test_decree_links_to_parent_and_reverse():
+    g = reference_graph()
+    # 시행령 제30조 본문의 'bare 법 제29조' → 모법 조문 (시행령→법)
+    assert "개인정보보호법:제29조" in g.get("개인정보보호법 시행령:제30조", [])
+    # 역방향: 모법 제29조 → 그를 구체화한 시행령 제30조 (법 조회 시 시행령 세부기준 표면화)
+    assert "개인정보보호법 시행령:제30조" in g.get("개인정보보호법:제29조", [])

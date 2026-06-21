@@ -60,8 +60,8 @@ def build_user_prompt(question: str, articles: list[RetrievedArticle]) -> str:
 
 _CITE_BLOCK = re.compile(r"\[출처:[^\]]*\]")
 _ART_ID = re.compile(r"제\d+조(?:의\d+)?")
-# 법령명(…법) + 조문 — 인용 블록 내 '법령 명시 인용'을 (법령, 조문) 단위로 잡는다.
-_LAW_ART = re.compile(r"([가-힣A-Za-z]+법)\s*(제\d+조(?:의\d+)?)")
+# 법령명(…법, 또는 '…법 시행령') + 조문 — 인용 블록 내 '법령 명시 인용'을 (법령, 조문) 단위로 잡는다.
+_LAW_ART = re.compile(r"([가-힣A-Za-z]+법(?:\s*시행령)?)\s*(제\d+조(?:의\d+)?)")
 
 
 def _cited_refs(answer: str) -> set[str]:
