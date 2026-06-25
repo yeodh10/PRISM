@@ -40,8 +40,10 @@ class Settings(BaseSettings):
     news_http_timeout: float = 6.0
     news_max_workers: int = 6
 
-    # --- CORS (운영 시 배포 도메인으로 제한; 콤마 구분) ---
-    cors_allow_origins: str = "*"
+    # --- CORS (콤마 구분) ---
+    # 기본은 cross-origin 차단(빈 값). 프론트는 FastAPI가 같은 오리진으로 서빙하므로
+    # 영향 없음. 외부 도메인에서 /ask를 호출해야 할 때만 그 도메인을 .env로 지정.
+    cors_allow_origins: str = ""
 
 
 settings = Settings()
