@@ -19,6 +19,11 @@ class Article(BaseModel):
         return f"{self.law}:{self.id}"
 
     @property
+    def heading(self) -> str:
+        """임베딩 머리말: 법령 + 제목. 조문 벡터와 조각 벡터 모두 이 머리말로 시작한다."""
+        return f"{self.law} {self.title}"
+
+    @property
     def embedding_text(self) -> str:
-        """임베딩 대상: 제목 + 본문 (검색 적중률 향상)."""
-        return f"{self.title}\n{self.text}"
+        """조문 단위 임베딩 대상: 법령·제목 + 본문 (검색 적중률 향상)."""
+        return f"{self.heading}\n{self.text}"

@@ -68,8 +68,8 @@ class Source(BaseModel):
     category: str
     ref: str
     source_url: str | None = None
-    score: float
-    kind: str = "검색"  # "검색"(벡터 적중) | "연관"(상호참조로 연결)
+    score: float  # 관련도 0~1 (검색기 순위 융합 점수)
+    kind: str = "검색"  # "검색"(융합 검색 적중) | "연관"(상호참조로 연결)
     linked_from: list[str] = []
 
 
