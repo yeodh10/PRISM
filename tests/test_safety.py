@@ -1,6 +1,15 @@
 """generator 안전망(면책 고지·출처 검증) 단위 테스트 — LLM 비호출."""
-from app.rag.generator import DISCLAIMER, _finalize
+from app.loader import load_versions
+from app.rag.generator import DISCLAIMER, SYSTEM_PROMPT, _basis_note, _finalize
 from app.rag.retriever import RetrievedArticle
+
+
+def test_prompt_states_basis_version_from_records():
+    # 기준 시행일은 코드에 박아 두지 않고 대조 기록에서 읽는다(법령이 개정되면 기록만 갱신)
+    for law, v in load_versions().items():
+        assert f"{law} {v['effective']} 시행본" in SYSTEM_PROMPT
+    assert _basis_note({}) == ""
+    assert "{" not in SYSTEM_PROMPT  # 채워지지 않은 자리표시자 없음
 
 
 def _art(article_id: str, law: str = "개인정보보호법") -> RetrievedArticle:

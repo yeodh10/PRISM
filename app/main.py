@@ -5,16 +5,16 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-import anthropic
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.config import settings
+from app.loader import load_versions
 from app.news import get_news
 from app.rag.retriever import available_laws
-from app.service import answer_question
+from app.service import answer_question, llm_state
 
 logger = logging.getLogger("prism")
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
@@ -47,7 +47,7 @@ app = FastAPI(
     version="0.4.0",
 )
 
-# 프론트를 같은 오리진에서 서빙하므로 기본 데모는 전체 허용. 운영은 .env의 CORS_ALLOW_ORIGINS로 제한.
+# 프론트는 같은 오리진에서 서빙하므로 기본은 cross-origin 차단(빈 목록). 외부 도메인 허용은 .env의 CORS_ALLOW_ORIGINS로.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.cors_allow_origins.split(",") if o.strip()],
@@ -76,6 +76,7 @@ class Source(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     sources: list[Source]
+    degraded: bool = False  # True면 LLM 답변 대신 검색된 조문 원문만 실은 응답(검색 전용)
 
 
 @app.get("/", include_in_schema=False)
@@ -89,14 +90,19 @@ def index():
 
 @app.get("/health", tags=["system"])
 def health():
-    """헬스체크 — 앱 기동·키·벡터 인덱스 준비 여부(인덱스 미빌드면 degraded)."""
+    """헬스체크 — 앱 기동·키·벡터 인덱스 준비 여부 + 마지막 LLM 호출 결과.
+
+    LLM 상태는 실제 질문 처리에서 관측한 값이다(헬스체크가 유료 호출을 하지 않음). 인덱스가 없거나
+    마지막 LLM 호출이 실패했으면 degraded.
+    """
     try:
         from app.rag.vectorstore import get_collection
 
         index_count = get_collection().count()
     except Exception:
         index_count = 0
-    ready = bool(settings.anthropic_api_key) and index_count > 0
+    llm = llm_state()
+    ready = bool(settings.anthropic_api_key) and index_count > 0 and llm["status"] != "unavailable"
     return {
         "status": "ok" if ready else "degraded",
         "service": "PRISM",
@@ -104,18 +110,24 @@ def health():
         "api_key_set": bool(settings.anthropic_api_key),
         "index_count": index_count,
         "index_ready": index_count > 0,
+        "llm": llm,
     }
 
 
 @app.get("/laws", tags=["system"])
 def laws():
-    """인덱스에 존재하는 법령 목록 + 조문 수 (필터 UI 구성용)."""
-    return {"laws": available_laws()}
+    """인덱스에 존재하는 법령 목록 + 조문 수 + 기준 시행본(필터 UI·기준일 표시용)."""
+    versions = load_versions()
+    out = []
+    for d in available_laws():
+        v = versions.get(d["law"], {})
+        out.append({**d, "effective": v.get("effective"), "number": v.get("number"), "checked": v.get("checked")})
+    return {"laws": out}
 
 
 @app.post("/ask", response_model=AskResponse, tags=["rag"])
 def ask(req: AskRequest, request: Request):
-    """질문 → 관련 조문 검색 → Claude가 출처 인용해 답변."""
+    """질문 → 관련 조문 검색 → Claude가 출처 인용해 답변. LLM 장애 시에는 검색 전용 응답(degraded)."""
     client_ip = request.client.host if request.client else "?"
     if _rate_limited(client_ip):
         raise HTTPException(status_code=429, detail="요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.")
@@ -131,15 +143,7 @@ def ask(req: AskRequest, request: Request):
             detail="ANTHROPIC_API_KEY가 설정되지 않았습니다. .env 파일을 확인하세요.",
         )
     try:
-        return answer_question(question, law=law)
-    except anthropic.AuthenticationError:
-        raise HTTPException(status_code=401, detail="Anthropic API 키가 유효하지 않습니다. .env의 키를 확인하세요.")
-    except anthropic.RateLimitError:
-        raise HTTPException(status_code=429, detail="요청이 많아 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요.")
-    except anthropic.APIConnectionError:
-        raise HTTPException(status_code=503, detail="Claude API에 연결하지 못했습니다. 네트워크 상태를 확인하세요.")
-    except anthropic.APIStatusError as e:
-        raise HTTPException(status_code=502, detail=f"Claude API 오류({e.status_code})가 발생했습니다. 잠시 후 다시 시도해 주세요.")
+        return answer_question(question, law=law)  # LLM API 오류는 service가 검색 전용 응답으로 흡수
     except Exception:
         logger.exception("ask() 처리 중 예기치 못한 오류")
         raise HTTPException(status_code=500, detail="답변 생성 중 오류가 발생했습니다.")
